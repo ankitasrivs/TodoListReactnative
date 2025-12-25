@@ -12,26 +12,33 @@ import {
   Platform,
 } from 'react-native';
 
-export default function App() {
-  const [text, setText] = useState('');
-  const [todos, setTodos] = useState<{ id: string; value: string }[]>([]);
+interface Todo {
+  id: string;
+  value: string;
+}
 
-  const addTodo = () => {
+export default function App() {
+  const [text, setText] = useState<string>('');
+  const [todos, setTodos] = useState<Todo[]>([]);
+
+  const addTodo = (): void => {
     if (!text.trim()) return;
     setTodos([...todos, { id: Date.now().toString(), value: text }]);
     setText('');
   };
 
-  const deleteTodo = (id: string) => {
+  const deleteTodo = (id: string): void => {
     setTodos(todos.filter((todo) => todo.id !== id));
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" />
-      
+    <View style={styles.safeArea}>
+      {/* translucent={true} is often better for modern Android styling */}
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
+      {/* THIS IS THE SPACER: It physically pushes everything down */}
+
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
         style={styles.container}
       >
         <Text style={styles.title}>My Todo List</Text>
@@ -40,7 +47,7 @@ export default function App() {
           <TextInput
             value={text}
             onChangeText={setText}
-            placeholder="Add a new task..."
+            placeholder="Add a task"
             placeholderTextColor="#888"
             style={styles.input}
           />
@@ -55,20 +62,14 @@ export default function App() {
           renderItem={({ item }) => (
             <View style={styles.todoItem}>
               <Text style={styles.todoText}>{item.value}</Text>
-              <TouchableOpacity 
-                onPress={() => deleteTodo(item.id)} 
-                style={styles.deleteButton}
-              >
+              <TouchableOpacity onPress={() => deleteTodo(item.id)} style={styles.deleteButton}>
                 <Text style={styles.deleteButtonText}>Delete</Text>
               </TouchableOpacity>
             </View>
           )}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No tasks yet. Add one above!</Text>
-          }
         />
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -80,8 +81,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    // This padding ensures we are well below the notch
-    paddingTop: 20, 
+    // This logic gives Android extra space based on the status bar height
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 60 : 60,
   },
   title: {
     fontSize: 28,
@@ -100,7 +101,6 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     paddingHorizontal: 15,
     borderRadius: 10,
-    fontSize: 16,
     color: '#000',
     backgroundColor: '#F9F9F9',
   },
@@ -111,10 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 10,
   },
-  buttonText: {
-    color: '#FFF',
-    fontWeight: '700',
-  },
+  buttonText: { color: '#FFF', fontWeight: '700' },
   todoItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -123,25 +120,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEE',
   },
-  todoText: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
-  },
+  todoText: { fontSize: 16, color: '#333', flex: 1 },
   deleteButton: {
     backgroundColor: '#FF3B30',
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
   },
-  deleteButtonText: {
-    color: '#FFF',
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#999',
-    marginTop: 40,
-  },
+  deleteButtonText: { color: '#FFF', fontWeight: '600', fontSize: 12 },
 });
